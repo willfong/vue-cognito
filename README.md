@@ -1,5 +1,15 @@
 # vue-cognito
 
+https://www.npmjs.com/package/amazon-cognito-identity-js
+
+
+## Howto
+
+- npm i amazon-cognito-identity-js
+
+
+
+
 ## Project setup
 ```
 npm install
