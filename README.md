@@ -1,7 +1,8 @@
 # vue-cognito
 
 https://www.npmjs.com/package/amazon-cognito-identity-js
-
+https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-with-identity-providers.html
+https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
 
 ## Howto
 
