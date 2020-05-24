@@ -9,6 +9,9 @@ https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-po
 - npm i amazon-cognito-identity-js
 
 
+## Local Server
+
+- `node server.js` - Serves Vue app from `dist/`. Make sure to run `npm run build` first.
 
 
 ## Project setup

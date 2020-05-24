@@ -26,7 +26,7 @@
 </template>
 
 <script>
-
+import axios from 'axios';
 import {
     AuthenticationDetails,
     CognitoUserPool,
@@ -88,6 +88,11 @@ export default {
                     console.log("Access Token: " + result.getAccessToken().getJwtToken());
                     console.log("Refresh Token: " + result.getRefreshToken().getToken());
                     console.log("ID Token: " + result.getIdToken().getJwtToken());
+                    axios.defaults.headers.common['accesstoken'] = result.getAccessToken().getJwtToken();
+                    console.log("Hitting API");
+                    axios.get("/api/myfirstapi").then(response => {
+                        console.log(response.data);
+                    });
                },
                
                onFailure: function(err) {
