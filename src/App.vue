@@ -100,10 +100,6 @@ export default {
                 }
                 var cognitoUser = result.user;
                 console.log("Logged in:");
-                /* Not sure why we can't get userdata???
-                console.log(getMethods(cognitoUser));
-                console.log(cognitoUser.getUserData());
-                */
                 console.log('user name is ' + cognitoUser.getUsername());
             });
       },
@@ -144,6 +140,13 @@ export default {
         }
       },
       refreshJwt() {
+        /*
+        We need the username to make the connection to CognitoUser.
+        For the purpose of this example, we are extracting that from
+        the access token. But in a real application, it can probably
+        parse it from a different source, so the access token won't
+        be necessary
+        */
         var userData = {
           Username: this.decodedAccess.username,
           Pool: userPool,
