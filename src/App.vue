@@ -27,11 +27,13 @@
     <h1 class="subtitle">JWT Tokens</h1>
     <p>Access Token</p>
     <textarea class="textarea" v-model="jwtAccess" placeholder="Insert to set manually"></textarea>
+    <pre class="is-family-code" v-if="decodedAccess">{{decodedAccess}}</pre>
+    <p v-if="decodedAccess">Token Expired: {{jwtExpired(decodedAccess.exp)}}</p>
     <p>Refresh Token</p>
     <textarea class="textarea" v-model="jwtRefresh" placeholder="Insert to set manually"></textarea>
+    <button class="button is-primary" v-if="jwtRefresh" @click="refreshJwt">Refresh JWT Tokens</button>
     <p>ID Token</p>
     <textarea class="textarea" v-model="jwtId" placeholder="Insert to set manually"></textarea>
-    <button class="button is-primary" @click="setJwtTokens">Set JWT Tokens</button>
     <hr />
     <h1 class="subtitle">Make API Call</h1>
     <button class="button is-primary" @click="makeApiCall">Call</button>
@@ -43,7 +45,8 @@ import axios from 'axios';
 import {
     AuthenticationDetails,
     CognitoUserPool,
-    CognitoUser
+    CognitoUser,
+    CognitoRefreshToken,
 } from 'amazon-cognito-identity-js';
 
 var poolData = {
@@ -71,6 +74,14 @@ export default {
           jwtId: null,
           jwtRefresh: null,
       }
+  },
+  computed: {
+    decodedAccess() {
+      if (this.jwtAccess && this.jwtAccess.split('.').length > 1) {
+        return JSON.parse(atob(this.jwtAccess.split('.')[1]));
+      }
+      return false;
+    },
   },
   methods: {
       newUser() {
@@ -109,29 +120,51 @@ export default {
           cognitoUser.authenticateUser(authenticationDetails, {
                onSuccess: result => {
                     console.log(getMethods(result));
-                    console.log("Access Token: " + result.getAccessToken().getJwtToken());
-                    this.jwtAccess = result.getAccessToken().getJwtToken();
-                    console.log("Refresh Token: " + result.getRefreshToken().getToken());
-                    this.jwtRefresh = result.getRefreshToken().getToken();
-                    console.log("ID Token: " + result.getIdToken().getJwtToken());
-                    this.jwtId = result.getIdToken().getJwtToken();
-                    axios.defaults.headers.common['accesstoken'] = result.getAccessToken().getJwtToken();
-                    this.makeApiCall();
-               },
-               
+                    this.parseJwtResponse(result);
+               },               
                onFailure: function(err) {
                     alert(err.message || JSON.stringify(err));
                 },
           });
       },
       makeApiCall() {
-        console.log("Hitting API");
+        axios.defaults.headers.common['accesstoken'] = this.jwtAccess;
+        console.log(`Using Access Token for API: ${this.jwtAccess}`);
         axios.get("/api/myfirstapi").then(response => {
             console.log(response.data);
         });
       },
-      setJwtTokens() {
-        axios.defaults.headers.common['accesstoken'] = this.jwtAccess;
+      jwtExpired() {
+        if (this.jwtAccess) {
+          const tokenData = JSON.parse(atob(this.jwtAccess.split('.')[1]))
+          if ( tokenData.exp > Math.floor(Date.now() / 1000)) {
+            return false
+          }
+          return true
+        }
+      },
+      refreshJwt() {
+        var userData = {
+          Username: this.decodedAccess.username,
+          Pool: userPool,
+        };
+        var cognitoUser = new CognitoUser(userData);
+        var refreshToken = new CognitoRefreshToken({
+          RefreshToken: this.jwtRefresh
+        });
+        cognitoUser.refreshSession(refreshToken, (err, data) => {
+          if (err) console.log(err, err.stack); // an error occurred
+          console.log(data);
+          this.parseJwtResponse(data);
+        });
+      },
+      parseJwtResponse(r) {
+        const accessToken = r.getAccessToken().getJwtToken();
+        const refreshToken = r.getRefreshToken().getToken();
+        const idToken = r.getIdToken().getJwtToken();
+        this.jwtAccess = accessToken;
+        this.jwtRefresh = refreshToken;
+        this.jwtId = idToken;
       },
   }
 }
