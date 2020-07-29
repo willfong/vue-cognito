@@ -24,6 +24,28 @@
         </div>
     </div>
     <hr />
+		<h1 class="subtitle">SMS Verification</h1>
+    <div class="field">
+        <label class="label">User Name</label>
+        <div class="control">
+            <input class="input" type="text" v-model="newUsername" placeholder="Username" disabled>
+        </div>
+    </div>
+    <div class="field">
+        <label class="label">SMS Code</label>
+        <div class="control">
+            <input class="input" type="tel" v-model="smsCode" placeholder="#######">
+        </div>
+    </div>
+    <div class="field is-grouped">
+        <div class="control">
+            <button class="button is-link" @click="smsVerify">Verify SMS</button>
+        </div>
+        <div class="control">
+            <button class="button is-link is-light" @click="smsResend">Resend SMS</button>
+        </div>
+    </div>		
+		<hr />
     <h1 class="subtitle">JWT Tokens</h1>
     <p>Access Token</p>
     <textarea class="textarea" v-model="jwtAccess" placeholder="Insert to set manually"></textarea>
@@ -50,8 +72,8 @@ import {
 } from 'amazon-cognito-identity-js';
 
 var poolData = {
-    UserPoolId: 'ap-southeast-1_ySxJ2ZP7c',
-    ClientId: 'cdebuv61ntpleisf85tev0bei',
+    UserPoolId: 'ap-southeast-1_Tl0YCXTQo',
+    ClientId: '5b2h1nibddktdsdp2jjl9u3tpi',
 };
 var userPool = new CognitoUserPool(poolData);
 
@@ -69,7 +91,8 @@ export default {
   data() {
       return {
           newUsername: null,
-          newPassword: null,
+					newPassword: null,
+					smsCode: null,
           jwtAccess: null,
           jwtId: null,
           jwtRefresh: null,
@@ -87,8 +110,10 @@ export default {
       newUser() {
           console.log('Setting up new user:');
           console.log(`Username: ${this.newUsername}`);
-          console.log(`Password: ${this.newPassword}`);
-          userPool.signUp(this.newUsername, this.newPassword, null, null, function(
+					console.log(`Password: ${this.newPassword}`);
+					//var userAttributes = null;
+					var userAttributes = [{Name: "nickname", Value: "Will"}];
+          userPool.signUp(this.newUsername, this.newPassword, userAttributes, null, function(
             err,
             result
             ) {
@@ -111,7 +136,7 @@ export default {
           var userData = {
             Username: this.newUsername,
             Pool: userPool,
-            };
+          };
           var cognitoUser = new CognitoUser(userData);
           cognitoUser.authenticateUser(authenticationDetails, {
                onSuccess: result => {
@@ -122,7 +147,57 @@ export default {
                     alert(err.message || JSON.stringify(err));
                 },
           });
-      },
+			},
+			smsVerify() {
+				var userData = {
+          Username: this.newUsername,
+          Pool: userPool,
+				};
+				var cognitoUser = new CognitoUser(userData);
+				cognitoUser.confirmRegistration(this.smsCode, true, function(err, result) {
+						if (err) {
+								alert(err.message || JSON.stringify(err));
+								return;
+						}
+						console.log('call result: ' + result);
+				});
+/*
+var poolData = {
+    UserPoolId: '...', // Your user pool id here
+    ClientId: '...', // Your client id here
+};
+ 
+var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+var userData = {
+    Username: 'username',
+    Pool: userPool,
+};
+ 
+var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+cognitoUser.confirmRegistration('123456', true, function(err, result) {
+    if (err) {
+        alert(err.message || JSON.stringify(err));
+        return;
+    }
+    console.log('call result: ' + result);
+});
+*/
+
+			},
+			smsResend() {
+				var userData = {
+          Username: this.newUsername,
+          Pool: userPool,
+				};
+				var cognitoUser = new CognitoUser(userData);
+				cognitoUser.resendConfirmationCode(function(err, result) {
+					if (err) {
+						alert(err.message || JSON.stringify(err));
+						return;
+					}
+					console.log('call result: ' + result);
+				});
+			},
       makeApiCall() {
         axios.defaults.headers.common['accesstoken'] = this.jwtAccess;
         console.log(`Using Access Token for API: ${this.jwtAccess}`);
