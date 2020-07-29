@@ -4,15 +4,27 @@
     <hr />
     <h1 class="subtitle">Sign Up / Login</h1>
     <div class="field">
-        <label class="label">Name</label>
+        <label class="label">Username</label>
         <div class="control">
             <input class="input" type="text" v-model="newUsername" placeholder="Username">
+        </div>
+    </div>
+    <div class="field">
+        <label class="label">Nickname</label>
+        <div class="control">
+            <input class="input" type="text" v-model="newNickname" placeholder="Nickname">
         </div>
     </div>
     <div class="field">
         <label class="label">Password</label>
         <div class="control">
             <input class="input" type="password" v-model="newPassword" placeholder="Password">
+        </div>
+    </div>
+    <div class="field">
+        <label class="label">Phone</label>
+        <div class="control">
+            <input class="input" type="tel" v-model="newPhone" placeholder="Phone">
         </div>
     </div>
     <div class="field is-grouped">
@@ -72,8 +84,8 @@ import {
 } from 'amazon-cognito-identity-js';
 
 var poolData = {
-    UserPoolId: 'ap-southeast-1_Tl0YCXTQo',
-    ClientId: '5b2h1nibddktdsdp2jjl9u3tpi',
+    UserPoolId: 'ap-southeast-1_k94Vp8apr',
+    ClientId: '44h9irkubv7pt22cjmqs84dh28',
 };
 var userPool = new CognitoUserPool(poolData);
 
@@ -92,6 +104,8 @@ export default {
       return {
           newUsername: null,
 					newPassword: null,
+					newNickname: null,
+					newPhone: null,
 					smsCode: null,
           jwtAccess: null,
           jwtId: null,
@@ -111,8 +125,7 @@ export default {
           console.log('Setting up new user:');
           console.log(`Username: ${this.newUsername}`);
 					console.log(`Password: ${this.newPassword}`);
-					//var userAttributes = null;
-					var userAttributes = [{Name: "nickname", Value: "Will"}];
+					var userAttributes = [{Name: "nickname", Value: this.newNickname}, {Name: "phone_number", Value: this.newPhone}];
           userPool.signUp(this.newUsername, this.newPassword, userAttributes, null, function(
             err,
             result
